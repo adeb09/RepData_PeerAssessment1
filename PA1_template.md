@@ -1,20 +1,13 @@
----
-title: "Peer Assessment 1"
-author: "Abirvab Deb"
-date: "Friday, August 15, 2014"
-output:
-  html_document:
-    keep_md: yes
----
+# Peer Assessment 1
+Abirvab Deb  
+Friday, August 15, 2014  
 
-```{r setoptions,echo=FALSE}
-library(knitr)
-opts_chunk$set(echo=TRUE, results="hide")
-```
+
 ***
 ##Loading and preprocessing
 #####Loading data into a data frame
-```{r LoadData,tidy=FALSE}
+
+```r
 con <- file("activity.csv","r")
 data <- read.csv(con, header=TRUE)
 close(con)
@@ -23,7 +16,8 @@ close(con)
 ##What is the mean total number of steps taken per day? 
 ####Computing the number of intervals recorded each day
 The **while loop** in this code chunk iterates until interval 0 is reached again and *count* keeps track of all the intervals.
-```{r tidy=FALSE}
+
+```r
 count=2
 num=data$interval[count]
 while(num != data$interval[1]){
@@ -36,7 +30,8 @@ count=count-1
 
 ####Computing the total number of steps taken per day
 Using a *for loop* in this code chunk to iterate through the data frame and summing cumulative steps.
-```{r histogram,tidy=FALSE}
+
+```r
 counts=numeric()
 n=seq(from=1,to=nrow(data),by=count)
 n[nrow(data)/count+1]=nrow(data)+1
@@ -45,17 +40,23 @@ for(i in 1:(nrow(data)/count)){
         
 }
 hist(counts,main="Distribution of Total Steps Taken per Day",xlab="Number of Steps in a Day",ylab="Count",breaks=seq(from=0,to=25000,by=2500))
+```
+
+![plot of chunk histogram](./PA1_template_files/figure-html/histogram.png) 
+
+```r
 mean1=format(mean(counts,na.rm=TRUE),digits=0)
 median1=format(median(counts,na.rm=TRUE),digits=0,scientific=FALSE)
 ```
 
-*The **mean** total number of steps taken per day is **`r mean1`**. The **median** total number of steps taken per day is **`r median1`**.*
+*The **mean** total number of steps taken per day is **9354**. The **median** total number of steps taken per day is **10395**.*
 
 ***
 
 ##What is the average daily activity pattern?
 The **for loop** in this code chunk iterates through each interval and uses logical indexing to average the steps taken during each interval.  **plot.ts** creates a time series plot of the average activity across all days.
-```{r tidy=FALSE}
+
+```r
 interval=numeric(count)
 for(j in 1:count){
         interval[j]=mean(data$steps[data$interval==(data$interval[j])],na.rm=TRUE)
@@ -66,25 +67,30 @@ axis(2)
 box()
 ```
 
+![plot of chunk unnamed-chunk-2](./PA1_template_files/figure-html/unnamed-chunk-2.png) 
+
 ####Calculating which 5-minute-interval on average has the maximum number of steps.
-```{r tidy=FALSE}
+
+```r
 m=data$interval[match(max(interval),interval)]
 ```
-*On average, the maximum number of steps is on **5-minute-interval `r m`**.*
+*On average, the maximum number of steps is on **5-minute-interval 835**.*
 
 ***
 
 ##Imputing missing values
 ####Calculating the number of missing values.
-```{r tidy=FALSE}
+
+```r
 nas=sum(is.na(data$steps))
 ```
-*The number of missing values is **`r nas`**.*
+*The number of missing values is **2304**.*
 
 #####The strategy implemented below for imputing missing values is to set the NA values to the mean number of steps for that 5 minute-interval extracted from *interval*.
 
 This code chunk creates a new data frame and replaces NA values with the mean of that 5-minute interval extracted from **interval**.
-```{r tidy=FALSE}
+
+```r
 new_data=data
 for(k in 1:length(new_data$steps)){
         if(is.na(new_data$steps[k])==TRUE){
@@ -98,24 +104,31 @@ for(k in 1:length(new_data$steps)){
 ```
 
 The **for loop** in this code chunk iterates through the new data frame and adds up all the steps for each interval. A new histogram is plotted with the new data.
-```{r tidy=FALSE}
+
+```r
 for(i in 1:(nrow(data)/count)){
         counts[i]=sum(new_data$steps[n[i]:(n[i+1]-1)])
         
 }
 hist(counts,main="Adjusted Distribution of Total Steps Taken per Day",xlab="Number of Steps in a Day",ylab="Count",breaks=seq(from=0,to=25000,by=2500))
+```
+
+![plot of chunk unnamed-chunk-6](./PA1_template_files/figure-html/unnamed-chunk-6.png) 
+
+```r
 mean2=format(mean(counts),digits=0,scientific=FALSE)
 median2=format(median(counts),digits=0,scientific=FALSE)
 ```
-*The new mean total number of steps taken per day is **`r mean2`**.*  
-*The new median total number of steps taken per day is **`r median2`**.*  
+*The new mean total number of steps taken per day is **10766**.*  
+*The new median total number of steps taken per day is **10766**.*  
 The adjusted mean and median with replaced NA values is still similar to the original mean and median, only marginally larger. This makes sense because interval mean values replaced the missing values.
 
 ***
 
 ##Are there differences in activity patterns between weekdays and weekends?
 This code chunk inserts a *Weekday_Weekend* Column in the **new_data** data frame. The **for loop** iterates through **new_data** and marks *weekend* or *weekday* in the new column.
-```{r tidy=FALSE}
+
+```r
 new_data$weekend_weekday=NA
 for(j in 1:length(new_data$date)){
         if (weekdays(as.Date(data$date[j])) == "Saturday" | weekdays(as.Date(data$date[j])) == "Sunday"){
@@ -127,7 +140,8 @@ for(j in 1:length(new_data$date)){
 ```
 
 Casting the *Weekday_Weekend* Column as a factor variable and iterating through **new_data** using logical indexing to compute average steps in weekdays and weekends.
-```{r tidy=FALSE}
+
+```r
 new_data$weekend_weekday=as.factor(new_data$weekend_weekday)
 
 weekend=as.character(new_data$weekend_weekday)=="weekend"
@@ -144,7 +158,8 @@ for(j in 1:count){
 ```
 
 *plot_data* is a  data frame that holds the weekend and weekday average steps data. The *lattice package* is used to create the final time series plot comparing the weekend and weekday average activity.
-```{r tidy=FALSE}
+
+```r
 plot_data=data.frame(interval=numeric(count),wkend_wkday=numeric(2*count),factors=factor(2*count))
 plot_data$interval=new_data$interval[1:count]
 plot_data$wkend_wkday=c(int_wkend,int_wkday)
@@ -158,3 +173,5 @@ xyplot(wkend_wkday~interval|factors,data=plot_data,type="l",
         labels=c("00:00","05:00","10:00","15:00","20:00")),
         y=list(relation="free")),layout=c(1,2),ylab="Average Number of Steps")
 ```
+
+![plot of chunk unnamed-chunk-9](./PA1_template_files/figure-html/unnamed-chunk-9.png) 
